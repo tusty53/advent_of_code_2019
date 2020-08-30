@@ -1,40 +1,45 @@
-ADD = 1
-MULTIPLY = 2
-STOP = 99
-TARGET = 19690720
+import math
+
+WIND_ROSE = \
+    {
+        "U": (0, 1),
+        "D": (0, -1),
+        "R": (1, 0),
+        "L": (-1, 0),
+    }
+
+
+def create_wire_path(wire):
+    wire_path = dict()
+    current_x, current_y = 0, 0
+    steps = 0
+    for instruction in wire:
+        direction = instruction[0]
+        distance = int(instruction[1:])
+
+        for i in range(distance):
+            current_x += WIND_ROSE[direction][0]
+            current_y += WIND_ROSE[direction][1]
+            steps += 1
+            wire_path[current_x, current_y] = steps
+
+    return wire_path
+
 
 if __name__ == "__main__":
-
     f = open("input.txt", "r")
+    wire_1 = f.readline().split(",")
+    wire_2 = f.readline().split(",")
 
-    initial_numbers = [int(x) for x in f.readline().split(",")]
+    wire_1_path = create_wire_path(wire_1)
+    wire_2_path = create_wire_path(wire_2)
 
-    for noun in range(100):
-        for verb in range(100):
-            pointer_position = 0
-            input_numbers = initial_numbers.copy()
-            input_numbers[1] = noun
-            input_numbers[2] = verb
+    min_dist = math.inf
+    closest_intersection = None
 
-            while pointer_position < len(input_numbers):
-                operator_value = input_numbers[pointer_position]
-                if operator_value == STOP:
-                    pointer_position = len(input_numbers)
-                else:
-                    number_1, number_2, result_position = input_numbers[input_numbers[pointer_position + 1]], \
-                                                          input_numbers[input_numbers[
-                                                              pointer_position + 2]], input_numbers[
-                                                              pointer_position + 3]
+    for point in wire_1_path.keys():
+        if wire_2_path.keys().__contains__(point) and wire_1_path[point] + wire_2_path[point] < min_dist:
+            closest_intersection = point
+            min_dist = wire_1_path[point] + wire_2_path[point]
 
-                    if operator_value == ADD:
-                        result = number_1 + number_2
-                    if operator_value == MULTIPLY:
-                        result = number_1 * number_2
-                    input_numbers[result_position] = result
-
-                    pointer_position += 4
-            output = input_numbers[0]
-            if output == TARGET:
-                print(f"Target of {TARGET} has been reached. Noun value: {noun}, verb value: {verb}, result value(100 "
-                      f"* noun + verb): {100 * noun + verb}")
-                noun = 100
+    print(f"Closest intersection = {closest_intersection}, min distance = {min_dist}")
